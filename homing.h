@@ -16,12 +16,12 @@ typedef struct {
 SunPosition sun_position(float latitude, float longitude, double JD);
 
 typedef struct {
-	uint16_t yy;
-	uint8_t MM;
-	uint8_t dd;
-	uint8_t hh;
-	uint8_t mm;
-    uint8_t ss;
+	uint16_t Y;
+	uint8_t M;
+	uint8_t D;
+	uint8_t h;
+	uint8_t m;
+    uint8_t s;
 } datetime;
 
 double utc_to_julian(datetime utc);
