@@ -59,19 +59,19 @@ SunPosition sun_position(float latitude, float longitude, double julian_day) {
 
 double utc_to_julian(datetime utc) {
 
-	if (utc.MM <= 2) {
-		utc.yy -= 1;
-		utc.MM += 12;
+	if (utc.M <= 2) {
+		utc.Y -= 1;
+		utc.M += 12;
 	} // Treat Jan, Feb as months 13 and 14 of previous year (simplifies leap-year handling)
 
-	int A = utc.yy / 100;
+	int A = utc.Y / 100;
 	int B = 2 - A + (A / 4); // Gregorian correction term
 
-	double day_fraction = (utc.hh + (utc.mm / 60.0) + (utc.ss / 3600.0)) / 24.0;
+	double day_fraction = (utc.h + (utc.m / 60.0) + (utc.s / 3600.0)) / 24.0;
 
-	double JD = (int)(365.25 * (utc.yy + 4716))
-			  + (int)(30.6001 * (utc.MM + 1))
-			  + utc.dd + day_fraction + B - 1524.5; // 1524.5 shifts the epoch so that JD = 0 corresponds to noon Jan 1, 4713 BC
+	double JD = (int)(365.25 * (utc.Y + 4716))
+			  + (int)(30.6001 * (utc.M + 1))
+			  + utc.D + day_fraction + B - 1524.5; // 1524.5 shifts the epoch so that JD = 0 corresponds to noon Jan 1, 4713 BC
 
 	return JD;
 }
