@@ -4,28 +4,29 @@
 #define DEG2RAD (M_PI / 180.0f)
 #define RAD2DEG (180.0f / M_PI)
 
-SunPosition sun_position(float latitude, float longitude, double julian_day) {
+SunPosition sun_position(float latitude, float longitude, double JD) {
 
     SunPosition sp;
 
-    // Julian centuries since J2000.0
-    float T = (julian_day - 2451545.0) / 36525.0;
+    // Julian centuries since J2000.0 (25.1)
+    float T = (JD - 2451545.0) / 36525.0;
 
-    // Mean longitude and anomaly of the Sun
-    float L0 = fmodf(280.46646f + T * (36000.76983f + T * 0.0003032f), 360.0f);
-    float M  = 357.52911f + T * (35999.05029f - 0.0001537f * T);
+    // Mean longitude and anomaly of the Sun (25.2) + (25.3)
+    float L0 = fmodf(280.46646f + T * (36000.76983f + T * 0.0003032f), 360.0f); // (25.2)
+    float M  = 357.52911f + T * (35999.05029f - 0.0001537f * T); // (25.3)
 
-    // Equation of center
+    // Equation of center and true longitude (25.4)
     float C = (1.914602f - T*(0.004817f + 0.000014f*T)) * sinf(DEG2RAD*M)
             + (0.019993f - 0.000101f*T) * sinf(DEG2RAD*2*M)
             + 0.000289f * sinf(DEG2RAD*3*M);
 
-    // True longitude and obliquity
-    float lambda = L0 + C;
+    float trueL = L0 + C;
+
+    // True obliquity
     float epsilon = 23.439f - 0.00000036f * T;
 
     // Declination
-    float decl = asinf(sinf(DEG2RAD*epsilon) * sinf(DEG2RAD*lambda));
+    float decl = asinf(sinf(DEG2RAD*epsilon) * sinf(DEG2RAD*trueL));
 
     // Equation of time (in minutes)
     float y = tanf(DEG2RAD*(epsilon/2.0f)) * tanf(DEG2RAD*(epsilon/2.0f));
@@ -35,9 +36,9 @@ SunPosition sun_position(float latitude, float longitude, double julian_day) {
                  - 0.5f*y*y*sinf(4*DEG2RAD*L0)
                  - 1.25f*0.016708f*0.016708f*sinf(2*DEG2RAD*M));
 
-    // --- Solar time calculation ---
-    double JD0 = floor(julian_day + 0.5) - 0.5;     // Julian day at previous midnight
-    double fractional_day = julian_day - JD0;       // fraction of day [0..1)
+    // Solar time calculation
+    double JD0 = floor(JD + 0.5) - 0.5;     // Julian day at previous midnight
+    double fractional_day = JD - JD0;       // fraction of day [0..1)
     float true_solar_time = fractional_day*1440.0f + Etime + 4.0f * longitude;
     true_solar_time = fmodf(true_solar_time, 1440.0f); // wrap to 0-1440 minutes
 
