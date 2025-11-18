@@ -17,8 +17,8 @@ SunPosition sun_position(float latitude, float longitude, double JD) {
 
     // Equation of center and true longitude (25.4)
     float C = (1.914602f - T*(0.004817f + 0.000014f*T)) * sinf(DEG2RAD*M)
-            + (0.019993f - 0.000101f*T) * sinf(DEG2RAD*2*M)
-            + 0.000289f * sinf(DEG2RAD*3*M);
+              + (0.019993f - 0.000101f*T) * sinf(DEG2RAD*2*M)
+              + 0.000289f * sinf(DEG2RAD*3*M);
 
     float trueL = L0 + C;
 
@@ -28,18 +28,18 @@ SunPosition sun_position(float latitude, float longitude, double JD) {
     // Declination
     float decl = asinf(sinf(DEG2RAD*epsilon) * sinf(DEG2RAD*trueL));
 
-    // Equation of time (in minutes)
+    // Equation of time (in minutes) (28.3)
     float y = tanf(DEG2RAD*(epsilon/2.0f)) * tanf(DEG2RAD*(epsilon/2.0f));
-    float Etime = 4.0f * RAD2DEG * (y*sinf(2*DEG2RAD*L0)
-                 - 2*0.016708f*sinf(DEG2RAD*M)
-                 + 4*0.016708f*y*sinf(DEG2RAD*M)*cosf(2*DEG2RAD*L0)
-                 - 0.5f*y*y*sinf(4*DEG2RAD*L0)
-                 - 1.25f*0.016708f*0.016708f*sinf(2*DEG2RAD*M));
+    float E = 4.0f * RAD2DEG * (y*sinf(2*DEG2RAD*L0)
+              - 2*0.016708f*sinf(DEG2RAD*M)
+              + 4*0.016708f*y*sinf(DEG2RAD*M)*cosf(2*DEG2RAD*L0)
+              - 0.5f*y*y*sinf(4*DEG2RAD*L0)
+              - 1.25f*0.016708f*0.016708f*sinf(2*DEG2RAD*M));
 
     // Solar time calculation
     double JD0 = floor(JD + 0.5) - 0.5;     // Julian day at previous midnight
     double fractional_day = JD - JD0;       // fraction of day [0..1)
-    float true_solar_time = fractional_day*1440.0f + Etime + 4.0f * longitude;
+    float true_solar_time = fractional_day*1440.0f + E + 4.0f * longitude;
     true_solar_time = fmodf(true_solar_time, 1440.0f); // wrap to 0-1440 minutes
 
     float hour_angle = (true_solar_time / 4.0f) - 180.0f;
