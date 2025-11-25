@@ -1,25 +1,3 @@
-/*
- *  74HC595 -> L293D analog monitor (STM32F302R8, Nucleo)
- *
- *  Wiring (Nucleo Arduino headers, same as on Arduino UNO):
- *
- *  74HC595:
- *    SER   (pin 14) -> D8  (PA9)
- *    RCLK  (pin 12) -> D12 (PB14)
- *    SRCLK (pin 11) -> D4  (PB5)
- *    /OE   (pin 13) -> D7  (PA8, active LOW)
- *    VCC            -> 5V
- *    GND            -> GND
- *
- *  L293D (channel 1):
- *    OUT1 (pin 3)   -> A0 (PA0, +10k -> GND)
- *    OUT2 (pin 6)   -> A1 (PA1, +10k -> GND)
- *
- *  IMPORTANT:
- *    Ensure L293D outputs are limited so the STM32 pins never see > 3.3 V.
- *    Use a resistor divider if your motor supply / VCC2 is 5 V.
- */
-
 #include "stm32f30x_conf.h"   // STM32 SPL config
 #include "30010_io.h"         // UART / printf for this course
 #include "ADC.h"              // Your existing ADC helpers
@@ -46,16 +24,7 @@
 #define PIN_OE_PORT    GPIOA
 #define PIN_OE_PIN     GPIO_Pin_8   // 74HC595 /OE (active LOW) - D7
 
-/*------------------ ADC channels (STM32) ------------------------------------
- * Reuse your existing ADC_setup_PA() and ADC_measure_PA(ch).
- *  - A0 -> PA0 -> ADC1_IN1  (OUT1)
- *  - A1 -> PA1 -> ADC1_IN2  (OUT2)
- */
-#define ADC_CH_OUT1    1   // PA0 = A0
-#define ADC_CH_OUT2    2   // PA1 = A1
-
 /*------------------ Misc constants -----------------------------------------*/
-#define ADC_AVG_N      8          // samples to average (same as Arduino code)
 #define SETTLE_MS      80         // settle time after changing 74HC595 outputs
 #define PAUSE_MS       1000       // pause between states
 
@@ -161,47 +130,4 @@ void shift595Write(uint8_t value) {
 
 
 
-
-
-/*----------------------------------------------------------------------------
- * Stable ADC read (averaged).
- * Reuses your ADC_measure_PA(ch) helper.
- * ch = 1 → PA0 / OUT1
- * ch = 2 → PA1 / OUT2
- *----------------------------------------------------------------------------*/
-uint16_t analogReadStable(uint8_t ch, uint8_t samples) {
-    uint32_t acc = 0;
-
-    // Throw away first sample to settle mux / sample cap
-    (void)ADC_measure_PA(ch);
-
-    for (uint8_t i = 0; i < samples; i++) {
-        acc += ADC_measure_PA(ch);
-        // You can tighten this to a µs delay if you like; ms is just simple.
-        delay_ms(1);
-    }
-
-    return (uint16_t)(acc / samples);
-}
-
-/*----------------------------------------------------------------------------
- * Report current state to UART (PuTTY / Serial Monitor).
- * label: "COAST ", "FWD   ", "REV   ", "BRAKE "
- *----------------------------------------------------------------------------*/
-void reportState(const char *label) {
-    // Read raw ADC values
-    uint16_t r0 = analogReadStable(ADC_CH_OUT1, ADC_AVG_N);
-    uint16_t r1 = analogReadStable(ADC_CH_OUT2, ADC_AVG_N);
-
-    // Convert to voltages using your helper
-    float v0 = ADC_absolute_voltage(r0);
-    float v1 = ADC_absolute_voltage(r1);
-
-    // Digital interpretation as a sanity check (simple mid-scale threshold)
-    int d0 = (r0 > 2048) ? 1 : 0;
-    int d1 = (r1 > 2048) ? 1 : 0;
-
-    printf("%s | A0=%.2f V (D=%d)  A1=%.2f V (D=%d)\r\n",
-           label, v0, d0, v1, d1);
-}
 
