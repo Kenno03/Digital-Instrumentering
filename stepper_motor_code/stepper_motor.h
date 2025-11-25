@@ -26,13 +26,6 @@
 #define PIN_OE_PORT    GPIOA
 #define PIN_OE_PIN     GPIO_Pin_8   // 74HC595 /OE (active LOW) - D7
 
-/*------------------ ADC channels (STM32) ------------------------------------
- * Reuse your existing ADC_setup_PA() and ADC_measure_PA(ch).
- *  - A0 -> PA0 -> ADC1_IN1  (OUT1)
- *  - A1 -> PA1 -> ADC1_IN2  (OUT2)
- */
-#define ADC_CH_OUT1    1   // PA0 = A0
-#define ADC_CH_OUT2    2   // PA1 = A1
 
 /*------------------ Misc constants -----------------------------------------*/
 #define ADC_AVG_N      8          // samples to average (same as Arduino code)
@@ -50,9 +43,6 @@
 #define PAT_BRAKE  ((1 << BIT_IN1) | (1 << BIT_IN2))   // 0b00000011
 
 void delay_ms(uint32_t ms);
-static inline void gpio_set(GPIO_TypeDef *port, uint16_t pin);
-
-static inline void gpio_clr(GPIO_TypeDef *port, uint16_t pin);
 void gpio_init_74hc595(void);
 void shift595Write(uint8_t value);
 uint16_t analogReadStable(uint8_t ch, uint8_t samples);
